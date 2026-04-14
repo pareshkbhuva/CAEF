@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgnosLogic — Know When AI Makes Things Up</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a26;--text:#e8e6e3;--text2:#9a9890;--accent:#6366f1;--accent2:#818cf8;--green:#22c55e;--amber:#f59e0b;--red:#ef4444;--border:rgba(255,255,255,0.06);--font:'DM Sans',sans-serif;--mono:'JetBrains Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.6}a{color:var(--accent2);text-decoration:none}a:hover{text-decoration:underline}
+.ctr{max-width:1100px;margin:0 auto;padding:0 24px}
+nav{position:fixed;top:0;width:100%;background:rgba(10,10,15,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);z-index:100}
+nav .ctr{display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo{font-weight:700;font-size:18px}.logo span{color:var(--accent2)}
+nav ul{display:flex;gap:32px;list-style:none}nav ul a{color:var(--text2);font-size:14px;font-weight:500}nav ul a:hover{color:var(--text);text-decoration:none}
+.nr{display:flex;align-items:center;gap:12px}
+.navbtn{padding:8px 20px;border-radius:8px;font-size:14px;font-weight:500;border:none;cursor:pointer;font-family:var(--font)}
+.navbtn-fill{background:var(--accent);color:#fff}.navbtn-fill:hover{background:var(--accent2);text-decoration:none}
+.navbtn-out{background:none;color:var(--text2);border:1px solid var(--border)}.navbtn-out:hover{border-color:var(--accent2);color:var(--text);text-decoration:none}
+.nav-avatar{width:28px;height:28px;border-radius:50%}
+
+.hero{padding:160px 0 100px;text-align:center;position:relative}
+.hero::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:800px;height:800px;background:radial-gradient(circle,rgba(99,102,241,0.08),transparent 70%);pointer-events:none}
+.hero h1{font-size:clamp(36px,5vw,56px);font-weight:700;letter-spacing:-1.5px;line-height:1.1;margin-bottom:20px}
+.hero h1 em{font-style:normal;background:linear-gradient(135deg,var(--accent2),#c084fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{font-size:18px;color:var(--text2);max-width:600px;margin:0 auto 40px}
+.hcta{display:inline-flex;gap:12px}
+.btn{padding:14px 32px;border-radius:10px;font-size:15px;font-weight:600;font-family:var(--font);cursor:pointer;border:none;display:inline-block;transition:all .2s}
+.btn1{background:var(--accent);color:#fff}.btn1:hover{background:var(--accent2);transform:translateY(-1px);text-decoration:none}
+.btn2{background:none;color:var(--text);border:1px solid rgba(255,255,255,.15)}.btn2:hover{border-color:var(--accent2);color:var(--accent2);text-decoration:none}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-radius:16px;overflow:hidden;margin:-40px auto 80px;max-width:800px;position:relative;z-index:1}
+.stat{background:var(--bg2);padding:28px 20px;text-align:center}.sn{font-size:28px;font-weight:700;color:var(--accent2)}.sl{font-size:12px;color:var(--text2);margin-top:4px;text-transform:uppercase;letter-spacing:1px}
+
+section{padding:80px 0}.lab{font-size:12px;text-transform:uppercase;letter-spacing:2px;color:var(--accent2);margin-bottom:12px;font-weight:500}
+.stit{font-size:32px;font-weight:700;letter-spacing:-.5px;margin-bottom:16px}.sdesc{color:var(--text2);font-size:16px;margin-bottom:40px;max-width:560px}
+
+.demo{background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.dh{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.dd{width:12px;height:12px;border-radius:50%}
+.db{padding:24px;font-family:var(--mono);font-size:13px;line-height:1.8;white-space:pre-wrap}
+
+.hg{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.hc{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:32px}
+.hn{font-size:48px;font-weight:700;color:var(--accent);opacity:.3;line-height:1;margin-bottom:16px}
+.hc h3{font-size:18px;font-weight:600;margin-bottom:8px}.hc p{color:var(--text2);font-size:14px}
+
+.pg{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.pc{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:36px;display:flex;flex-direction:column}
+.pc.ft{border-color:var(--accent);position:relative}
+.pbdg{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:12px;font-weight:600;padding:4px 16px;border-radius:20px}
+.pn{font-size:18px;font-weight:600;margin-bottom:4px}.pd{font-size:13px;color:var(--text2);margin-bottom:24px}
+.pa{font-size:42px;font-weight:700;line-height:1}.pa span{font-size:16px;color:var(--text2);font-weight:400}
+.pp{font-size:13px;color:var(--text2);margin-bottom:24px}
+.pf{list-style:none;margin-bottom:32px;flex:1}.pf li{padding:8px 0;font-size:14px;color:var(--text2);border-bottom:1px solid var(--border)}.pf li::before{content:'✓ ';color:var(--green);font-weight:600}
+.pbtn{width:100%;text-align:center;padding:14px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:none;font-family:var(--font);display:block}
+.pbtn1{background:var(--accent);color:#fff}.pbtn1:hover{text-decoration:none;background:var(--accent2)}
+.pbtn2{background:none;color:var(--text);border:1px solid rgba(255,255,255,.15)}.pbtn2:hover{text-decoration:none;border-color:var(--accent2)}
+
+.ep{background:var(--bg2);border:1px solid var(--border);border-radius:12px;margin-bottom:16px;overflow:hidden}
+.eph{padding:16px 24px;display:flex;align-items:center;gap:12px}
+.epm{font-family:var(--mono);font-size:12px;font-weight:600;padding:4px 10px;border-radius:6px}
+.mp{background:rgba(99,102,241,.15);color:var(--accent2)}.mg{background:rgba(34,197,94,.15);color:var(--green)}
+.epp{font-family:var(--mono);font-size:14px}.epd{font-size:13px;color:var(--text2);margin-left:auto}
+.epb{padding:16px;font-family:var(--mono);font-size:12px;line-height:1.7;background:var(--bg3);margin:0 16px 16px;border-radius:8px;white-space:pre;overflow-x:auto}
+
+.ug{display:grid;grid-template-columns:repeat(2,1fr);gap:24px}
+.uc{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:32px}
+.ui{font-size:32px;margin-bottom:16px}.uc h3{font-size:18px;font-weight:600;margin-bottom:8px}.uc p{color:var(--text2);font-size:14px}
+
+footer{padding:48px 0;border-top:1px solid var(--border)}
+.fi{display:flex;justify-content:space-between;align-items:center}
+.fc{color:var(--text2);font-size:13px}.fl{display:flex;gap:24px}.fl a{color:var(--text2);font-size:13px}
+
+@media(max-width:768px){.stats{grid-template-columns:repeat(2,1fr)}.hg,.pg{grid-template-columns:1fr}.ug{grid-template-columns:1fr}nav ul{display:none}}
+</style>
+</head>
+<body>
+
+<nav><div class="ctr">
+  <div class="logo">Agnos<span>Logic</span></div>
+  <ul><li><a href="#demo">Demo</a></li><li><a href="#pricing">Pricing</a></li><li><a href="#docs">API docs</a></li><li><a href="#usecases">Use cases</a></li></ul>
+  <div class="nr">
+    {% if user %}
+      <a href="/dashboard" class="navbtn navbtn-out">Dashboard</a>
+      {% if user.picture %}<img src="{{ user.picture }}" class="nav-avatar" referrerpolicy="no-referrer">{% endif %}
+      <a href="/auth/logout" style="font-size:13px;color:var(--text2)">Sign out</a>
+    {% else %}
+      <a href="/auth/login" class="navbtn navbtn-out">Sign in</a>
+      <a href="/auth/login" class="navbtn navbtn-fill">Get API key</a>
+    {% endif %}
+  </div>
+</div></nav>
+
+<section class="hero"><div class="ctr">
+  <h1>Know when your AI<br>is <em>making things up</em></h1>
+  <p>Single-forward-pass epistemic uncertainty for LLMs. One API call gives you the answer and a calibrated risk score. No ensemble, no extra calls, no guesswork.</p>
+  <div class="hcta">
+    {% if user %}<a href="/dashboard" class="btn btn1">Go to dashboard</a>{% else %}<a href="/auth/login" class="btn btn1">Start free with Google</a>{% endif %}
+    <a href="#docs" class="btn btn2">View API docs</a>
+  </div>
+</div></section>
+
+<div class="ctr"><div class="stats">
+  <div class="stat"><div class="sn">70%</div><div class="sl">Hallucination catch</div></div>
+  <div class="stat"><div class="sn">&lt;1s</div><div class="sl">Scoring latency</div></div>
+  <div class="stat"><div class="sn">0.60</div><div class="sl">Eps spread</div></div>
+  <div class="stat"><div class="sn">76.5%</div><div class="sl">Logic detection</div></div>
+</div></div>
+
+<section id="demo"><div class="ctr">
+  <div class="lab">Live API</div>
+  <div class="stit">Score any text in one call</div>
+  <div class="sdesc">Send a question, get back the answer plus an epistemic risk score.</div>
+  <div class="demo"><div class="dh"><div class="dd" style="background:#ef4444"></div><div class="dd" style="background:#f59e0b"></div><div class="dd" style="background:#22c55e"></div><span style="margin-left:8px;font-size:13px;color:var(--text2)">api_request.py</span></div>
+  <div class="db"><span style="color:var(--text2)"># Score a question with AgnosLogic</span>
+import requests
+
+response = requests.post(
+    <span style="color:var(--green)">"{{ base_url }}/v1/ask"</span>,
+    headers={"Authorization": "Bearer <span style="color:var(--accent2)">YOUR_API_KEY</span>"},
+    json={"question": "How does antibiotic resistance develop?"}
+)
+print(response.json())
+<span style="color:var(--text2)"># → {"response": "...", "epsilon": 0.598, "category": "MED", "logic": 0.412}</span></div>
+  </div>
+</div></section>
+
+<section id="how"><div class="ctr">
+  <div class="lab">How it works</div>
+  <div class="stit">Hidden state geometry, not vibes</div>
+  <div class="sdesc">AgnosLogic reads the model's internal representations to detect uncertainty the text doesn't reveal.</div>
+  <div class="hg">
+    <div class="hc"><div class="hn">01</div><h3>Send your query</h3><p>POST to /v1/ask with your question. The model generates an answer in one forward pass.</p></div>
+    <div class="hc"><div class="hn">02</div><h3>Hidden state analysis</h3><p>Three auxiliary heads read the model's internal hidden states. A truth direction probe detects logical contradictions from the geometry alone.</p></div>
+    <div class="hc"><div class="hn">03</div><h3>Risk score returned</h3><p>You get the answer plus epsilon (overall risk), LOGIC score, and 4-dimensional uncertainty breakdown.</p></div>
+  </div>
+</div></section>
+
+<section id="pricing"><div class="ctr">
+  <div class="lab">Pricing</div>
+  <div class="stit">Pay for what you use</div>
+  <div class="sdesc">Start free. Scale when you're ready.</div>
+  <div class="pg">
+    <div class="pc">
+      <div class="pn">Explorer</div><div class="pd">Try AgnosLogic on your data</div>
+      <div class="pa">$0<span>/mo</span></div><div class="pp">15 queries per day</div>
+      <ul class="pf"><li>Score + Ask + Compare endpoints</li><li>Full uncertainty breakdown</li><li>Community support</li></ul>
+      <a href="/auth/login" class="pbtn pbtn2">{% if user %}Dashboard{% else %}Get free API key{% endif %}</a>
+    </div>
+    <div class="pc ft">
+      <div class="pbdg">Most popular</div>
+      <div class="pn">Builder</div><div class="pd">Build production agents</div>
+      <div class="pa">$49<span>/mo</span></div><div class="pp">10,000 queries per month</div>
+      <ul class="pf"><li>Everything in Explorer</li><li>Priority inference queue</li><li>Webhook notifications</li><li>Email support</li><li>Usage dashboard</li></ul>
+      <a href="mailto:agnosresearch@gmail.com?subject=Builder Plan" class="pbtn pbtn1">Contact for access</a>
+    </div>
+    <div class="pc">
+      <div class="pn">Enterprise</div><div class="pd">Custom deployment + SLA</div>
+      <div class="pa">Custom</div><div class="pp">Unlimited queries</div>
+      <ul class="pf"><li>Everything in Builder</li><li>Dedicated endpoint</li><li>Custom fine-tuning</li><li>On-premise option</li><li>SLA + dedicated support</li></ul>
+      <a href="mailto:agnosresearch@gmail.com?subject=Enterprise" class="pbtn pbtn2">Contact sales</a>
+    </div>
+  </div>
+</div></section>
+
+<section id="docs"><div class="ctr">
+  <div class="lab">API reference</div>
+  <div class="stit">Three endpoints, zero complexity</div>
+  <div class="sdesc">RESTful JSON API. Auth via Bearer token.</div>
+  <div class="ep"><div class="eph"><span class="epm mp">POST</span><span class="epp">/v1/score</span><span class="epd">Score text for epistemic risk</span></div>
+    <div class="epb">{"text": "Water boils at 100°C at sea level."}
+→ {"epsilon": 0.14, "category": "LOW", "logic": 0.001}</div></div>
+  <div class="ep"><div class="eph"><span class="epm mp">POST</span><span class="epp">/v1/ask</span><span class="epd">Generate answer + score</span></div>
+    <div class="epb">{"question": "How does antibiotic resistance develop?"}
+→ {"response": "...", "epsilon": 0.598, "category": "MED", "logic": 0.412}</div></div>
+  <div class="ep"><div class="eph"><span class="epm mp">POST</span><span class="epp">/v1/compare</span><span class="epd">Compare two statements</span></div>
+    <div class="epb">{"text_a": "Earth orbits the Sun.", "text_b": "Sun orbits Earth."}
+→ {"text_a": {"epsilon": 0.12}, "text_b": {"epsilon": 0.68}, "more_risky": "B"}</div></div>
+</div></section>
+
+<section id="usecases"><div class="ctr">
+  <div class="lab">Use cases</div>
+  <div class="stit">Built for developers who ship AI</div>
+  <div class="ug">
+    <div class="uc"><div class="ui">&#x1F50D;</div><h3>Research assistants</h3><p>Route uncertain answers to web search. Deliver confident answers directly.</p></div>
+    <div class="uc"><div class="ui">&#x1F6E1;</div><h3>Hallucination firewalls</h3><p>Score every LLM response before showing it to users. Catch 70% of hallucinations automatically.</p></div>
+    <div class="uc"><div class="ui">&#x2696;</div><h3>Legal and compliance</h3><p>Flag uncertain claims in contracts and regulatory filings before they go out.</p></div>
+    <div class="uc"><div class="ui">&#x1F4BB;</div><h3>Code review agents</h3><p>Score the model's confidence in its own bug analysis. High LOGIC = contradictory reasoning.</p></div>
+  </div>
+</div></section>
+
+<footer><div class="ctr"><div class="fi">
+  <div class="fc">&copy; 2026 Agnos Research. US Provisional Patent Filed.</div>
+  <div class="fl"><a href="mailto:agnosresearch@gmail.com">Contact</a><a href="#">Privacy</a><a href="#">Terms</a></div>
+</div></div></footer>
+
+</body>
+</html>
