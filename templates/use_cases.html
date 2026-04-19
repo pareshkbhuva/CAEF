@@ -1,0 +1,107 @@
+{% extends "_base.html" %}
+
+{% block title %}Use Cases — AgnosLogic{% endblock %}
+{% block description %}Real applications of AgnosLogic: RAG hallucination firewalls, research assistants, compliance review, code analysis agents.{% endblock %}
+
+{% block extra_styles %}
+.uc-hero{padding:72px 0 56px}
+.uc-hero h1{font-size:clamp(32px,4vw,48px);margin-bottom:20px}
+
+.uc-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:48px}
+.uc-card{padding:40px;border:1px solid var(--rule);border-radius:10px;background:var(--paper);transition:border-color .15s}
+.uc-card:hover{border-color:var(--ink-3)}
+.uc-card h3{font-size:22px;margin-bottom:16px;font-family:var(--serif)}
+.uc-scenario{font-size:14px;color:var(--ink-2);line-height:1.65;margin-bottom:20px}
+.uc-example{background:var(--paper-2);border-left:3px solid var(--ink);padding:16px 20px;margin-top:20px;font-size:13.5px;line-height:1.6;font-family:var(--serif);color:var(--ink-2);font-style:italic}
+.uc-how{margin-top:20px;padding-top:20px;border-top:1px solid var(--rule);font-size:13px;color:var(--ink-3)}
+.uc-how strong{color:var(--ink-2);font-weight:600}
+
+@media(max-width:768px){
+  .uc-grid{grid-template-columns:1fr;gap:20px}
+}
+{% endblock %}
+
+{% block content %}
+
+<section class="uc-hero" style="border-bottom:none">
+  <div class="container-narrow">
+    <div class="eyebrow">Use cases</div>
+    <h1>Built for developers shipping AI in production.</h1>
+    <p class="lead">Four real applications where single-call hallucination detection changes what's possible.</p>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="uc-grid">
+
+      <div class="uc-card">
+        <h3>RAG hallucination firewall</h3>
+        <p class="uc-scenario">Score every LLM response before showing it to users. Block or flag flagged outputs automatically. Route uncertain responses through additional verification.</p>
+        <div class="uc-example">
+          "Our customer support bot answered 12,000 questions last month. We used AgnosLogic to flag 430 as high-risk — turned out 89% of those flagged responses were genuinely hallucinated. That's hundreds of incorrect answers we would have shown to customers."
+        </div>
+        <div class="uc-how"><strong>How:</strong> POST every LLM output to /v1/score before returning to users. Show "verified" responses directly, route "uncertain" ones through retrieval, and block or rewrite "flagged" ones.</div>
+      </div>
+
+      <div class="uc-card">
+        <h3>Research assistant with confidence</h3>
+        <p class="uc-scenario">Generate an answer and tell the user how confident the model is. Route uncertain answers to web search. Deliver verified answers directly with visible confidence indicators.</p>
+        <div class="uc-example">
+          "Question: What was the name of the first satellite? Answer: Sputnik 1, launched by the Soviet Union on October 4, 1957. <strong>[Verified]</strong>"
+        </div>
+        <div class="uc-how"><strong>How:</strong> Use /v1/ask to get answer + verdict in one call. Display the verdict next to the answer. Fall back to search for "flagged" or "uncertain" results.</div>
+      </div>
+
+      <div class="uc-card">
+        <h3>Legal and compliance review</h3>
+        <p class="uc-scenario">Flag uncertain claims in contracts, regulatory filings, and compliance documents before they go out. AI-generated summaries and drafts often contain fabricated citations or altered figures.</p>
+        <div class="uc-example">
+          "Our paralegal team runs all AI-drafted summaries through AgnosLogic. Any flagged sentence triggers manual review. Caught three fabricated case citations last quarter that would have embarrassed the firm."
+        </div>
+        <div class="uc-how"><strong>How:</strong> Split documents into sentences, score each via /v1/score, highlight flagged spans in the UI for human review.</div>
+      </div>
+
+      <div class="uc-card">
+        <h3>Code review agents</h3>
+        <p class="uc-scenario">When an AI explains a bug or suggests a fix, score the explanation. High-risk explanations often contain made-up API methods, wrong library names, or invented syntax.</p>
+        <div class="uc-example">
+          "The AI suggested using pandas.to_blockchain() to export data. <strong>[Flagged]</strong> — that method doesn't exist. Without AgnosLogic, this would have wasted a developer's afternoon."
+        </div>
+        <div class="uc-how"><strong>How:</strong> Score AI-generated code explanations. High-risk outputs get auto-verified against documentation or flagged for human review before merging.</div>
+      </div>
+
+      <div class="uc-card">
+        <h3>Medical and scientific writing</h3>
+        <p class="uc-scenario">Fabricated drug interactions, invented research citations, and made-up clinical trial data can cause real harm. Score AI-generated medical content before publication or patient-facing delivery.</p>
+        <div class="uc-example">
+          "We score every AI-drafted patient education document. High-risk sections trigger expert review. Non-negotiable for anything touching clinical guidance."
+        </div>
+        <div class="uc-how"><strong>How:</strong> Combine /v1/score with domain expert review for all "flagged" content. Never ship unverified content for high-stakes domains.</div>
+      </div>
+
+      <div class="uc-card">
+        <h3>Evaluation and benchmarking</h3>
+        <p class="uc-scenario">Comparing two LLMs? Run their outputs through /v1/compare to see which produces more trustworthy responses on your specific prompts.</p>
+        <div class="uc-example">
+          "We ran 500 domain-specific questions through both Qwen-72B and our fine-tuned model. /v1/compare showed our fine-tuned model had 23% fewer flagged responses. Decisive evidence for our deployment decision."
+        </div>
+        <div class="uc-how"><strong>How:</strong> Use /v1/compare to run pairwise evaluations. Aggregate verdicts across your test set to compare models objectively.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section style="background:var(--paper-2)">
+  <div class="container-narrow" style="text-align:center">
+    <h2>Have a use case we haven't covered?</h2>
+    <p class="lead" style="margin:16px auto 28px;max-width:540px">We'd love to hear about it. Reach out and we'll help you design an integration.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <a href="mailto:hello@agnoslogic.com?subject=Use%20case%20inquiry" class="btn btn-primary">Email us</a>
+      <a href="/auth/login" class="btn btn-ghost">Get API key</a>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
