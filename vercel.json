@@ -1,0 +1,9 @@
+{
+  "functions": {
+    "app/api/v1/score/route.ts": { "maxDuration": 10 },
+    "app/api/v1/ask/route.ts": { "maxDuration": 10 },
+    "app/api/v1/compare/route.ts": { "maxDuration": 10 },
+    "app/api/public/analyze/route.ts": { "maxDuration": 10 },
+    "app/api/jobs/[id]/route.ts": { "maxDuration": 10 }
+  }
+}
