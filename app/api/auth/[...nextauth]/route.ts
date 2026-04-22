@@ -7,7 +7,7 @@ import { upsertUser, getUserByEmail, genApiKey } from '@/lib/db'
 function getValidNextAuthUrl(req: NextRequest): string {
   const configuredUrl = process.env.NEXTAUTH_URL || ''
   
-  // If URL is valid, use it
+  // If URL is valid (no brackets), use it
   try {
     if (configuredUrl && !configuredUrl.includes('[')) {
       new URL(configuredUrl)
@@ -21,14 +21,9 @@ function getValidNextAuthUrl(req: NextRequest): string {
   return `${proto}://${host}`
 }
 
-// Create auth handler dynamically with correct URL
-function createAuthHandler(req: NextRequest) {
-  const baseUrl = getValidNextAuthUrl(req)
-  
-  // Temporarily set NEXTAUTH_URL for this request
-  process.env.NEXTAUTH_URL = baseUrl
-  
-  const handler = NextAuth({
+// Create NextAuth options
+function getAuthOptions(baseUrl: string) {
+  return {
     providers: [
       GoogleProvider({
         clientId: process.env.GOOGLE_CLIENT_ID || '',
@@ -43,11 +38,11 @@ function createAuthHandler(req: NextRequest) {
       }),
     ],
     session: {
-      strategy: 'jwt',
+      strategy: 'jwt' as const,
       maxAge: 30 * 24 * 60 * 60,
     },
     callbacks: {
-      async signIn({ user, account }) {
+      async signIn({ user, account }: any) {
         if (!user.email || account?.provider !== 'google') return false
         try {
           await upsertUser({
@@ -62,7 +57,7 @@ function createAuthHandler(req: NextRequest) {
           return true // Allow sign-in even if DB fails
         }
       },
-      async jwt({ token, user }) {
+      async jwt({ token, user }: any) {
         if (user?.email) {
           try {
             const dbUser = await getUserByEmail(user.email)
@@ -83,7 +78,7 @@ function createAuthHandler(req: NextRequest) {
         }
         return token
       },
-      async session({ session, token }) {
+      async session({ session, token }: any) {
         if (session.user) {
           session.user.id = token.userId as number
           session.user.apiKey = token.apiKey as string
@@ -96,17 +91,25 @@ function createAuthHandler(req: NextRequest) {
       signIn: '/',
       error: '/',
     },
-  })
+  }
+}
+
+export async function GET(req: NextRequest) {
+  const baseUrl = getValidNextAuthUrl(req)
+  process.env.NEXTAUTH_URL = baseUrl
   
-  return handler
+  const authOptions = getAuthOptions(baseUrl)
+  const handler = NextAuth(authOptions)
+  
+  return handler(req as any, { params: { nextauth: req.nextUrl.pathname.split('/api/auth/')[1]?.split('/') || [] } })
 }
 
-export async function GET(req: NextRequest, context: { params: { nextauth: string[] } }) {
-  const handler = createAuthHandler(req)
-  return handler(req, context)
-}
-
-export async function POST(req: NextRequest, context: { params: { nextauth: string[] } }) {
-  const handler = createAuthHandler(req)
-  return handler(req, context)
+export async function POST(req: NextRequest) {
+  const baseUrl = getValidNextAuthUrl(req)
+  process.env.NEXTAUTH_URL = baseUrl
+  
+  const authOptions = getAuthOptions(baseUrl)
+  const handler = NextAuth(authOptions)
+  
+  return handler(req as any, { params: { nextauth: req.nextUrl.pathname.split('/api/auth/')[1]?.split('/') || [] } })
 }

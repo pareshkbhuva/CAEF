@@ -125,7 +125,7 @@ export async function POST(req: NextRequest) {
       // Completed synchronously
       const out = syncResult.output
       const category = out.category || 'MED'
-      const response = mode === 'ask' ? out.response || out.generated || '' : undefined
+      const response = mode === 'ask' ? (out.response || out.generated || '') : undefined
       return NextResponse.json({
         category,
         verdict: categoryToVerdict(category),
@@ -133,30 +133,35 @@ export async function POST(req: NextRequest) {
       })
     }
 
+    // If we got a pending ID, it means the job is queued - this is not an error
+    if (syncResult?.pendingId) {
+      const jobId = await saveJob({
+        userId: null,
+        runpodJobId: syncResult.pendingId,
+        endpoint: `/public/${mode}`,
+        inputText: text,
+      })
+      return NextResponse.json({ jobId: jobId || syncResult.pendingId, status: 'pending' })
+    }
+
     if (syncResult?.error) {
       return NextResponse.json({ error: syncResult.error }, { status: 502 })
     }
 
-    // Cold start path: runsync returned a job ID we can reuse, or we timed out
-    let runpodJobId: string
-    if (syncResult?.pendingId) {
-      runpodJobId = syncResult.pendingId
-    } else {
-      const submission = await submitRunPodJob(payload)
-      if ('error' in submission) {
-        return NextResponse.json({ error: submission.error }, { status: 502 })
-      }
-      runpodJobId = submission.id
+    // Cold start path: runsync timed out, submit async job
+    const submission = await submitRunPodJob(payload)
+    if ('error' in submission) {
+      return NextResponse.json({ error: submission.error }, { status: 502 })
     }
 
     const jobId = await saveJob({
       userId: null, // public demo, no user
-      runpodJobId,
+      runpodJobId: submission.id,
       endpoint: `/public/${mode}`,
       inputText: text,
     })
 
-    return NextResponse.json({ jobId: jobId || runpodJobId, status: 'pending' })
+    return NextResponse.json({ jobId: jobId || submission.id, status: 'pending' })
   } catch (err: any) {
     console.error('public/analyze error:', err)
     return NextResponse.json({ error: 'Analysis temporarily unavailable' }, { status: 502 })
