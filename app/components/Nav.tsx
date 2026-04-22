@@ -2,9 +2,54 @@
 
 import Link from 'next/link'
 import { useSession, signIn, signOut } from 'next-auth/react'
+import { useState, useEffect } from 'react'
 
 export default function Nav() {
-  const { data: session, status } = useSession()
+  const [isAuthEnabled, setIsAuthEnabled] = useState(false)
+  const [session, setSession] = useState<any>(null)
+  const [status, setStatus] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading')
+
+  // Only use useSession if auth is properly configured
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/auth/session')
+        if (res.ok) {
+          const data = await res.json()
+          if (data && data.user) {
+            setSession(data)
+            setStatus('authenticated')
+          } else {
+            setStatus('unauthenticated')
+          }
+          setIsAuthEnabled(true)
+        } else {
+          setStatus('unauthenticated')
+          setIsAuthEnabled(false)
+        }
+      } catch {
+        setStatus('unauthenticated')
+        setIsAuthEnabled(false)
+      }
+    }
+    checkAuth()
+  }, [])
+
+  const handleSignIn = () => {
+    if (isAuthEnabled) {
+      signIn('google')
+    } else {
+      alert('Authentication is not configured. Please set up NEXTAUTH_URL and other required environment variables.')
+    }
+  }
+
+  const handleSignInDashboard = () => {
+    if (isAuthEnabled) {
+      signIn('google', { callbackUrl: '/dashboard' })
+    } else {
+      alert('Authentication is not configured. Please set up NEXTAUTH_URL and other required environment variables.')
+    }
+  }
 
   return (
     <nav className="site-nav">
@@ -110,7 +155,7 @@ export default function Nav() {
               <Link href="/dashboard" className="btn btn-ghost">
                 Dashboard
               </Link>
-              {session.user.image && (
+              {session.user?.image && (
                 <img
                   src={session.user.image}
                   className="nav-avatar"
@@ -124,10 +169,10 @@ export default function Nav() {
             </>
           ) : (
             <>
-              <button onClick={() => signIn('google')} className="sign-link">
+              <button onClick={handleSignIn} className="sign-link">
                 Sign in
               </button>
-              <button onClick={() => signIn('google', { callbackUrl: '/dashboard' })} className="btn btn-primary">
+              <button onClick={handleSignInDashboard} className="btn btn-primary">
                 Get API key
               </button>
             </>

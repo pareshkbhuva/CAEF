@@ -1,11 +1,10 @@
 import './globals.css'
 import type { Metadata } from 'next'
-import { SessionProvider } from '@/components/SessionProvider'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://www.agnoslogic.com'),
+  metadataBase: new URL('https://www.agnoslogic.com'),
   title: {
     default: 'AgnosLogic — AI Hallucination Detection API',
     template: '%s — AgnosLogic',
@@ -52,11 +51,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        <SessionProvider>
-          <Nav />
-          <main>{children}</main>
-          <Footer />
-        </SessionProvider>
+        <Nav />
+        <main>{children}</main>
+        <Footer />
       </body>
     </html>
   )
