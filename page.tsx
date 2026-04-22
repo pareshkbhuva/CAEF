@@ -76,7 +76,7 @@ export default function HomePage() {
 
       <section className="hero">
         <div className="hero-inner">
-          <div className="hero-mark">Agnos Research · v51h</div>
+          <div className="hero-mark">Agnos Logic · v51h</div>
           <h1>
             Know when your language model is <em>making things up.</em>
           </h1>

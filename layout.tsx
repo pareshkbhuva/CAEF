@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     'epistemic uncertainty',
     'LLM evaluation',
   ],
-  authors: [{ name: 'Agnos Research' }],
+  authors: [{ name: 'Agnos Logic' }],
   openGraph: {
     title: 'AgnosLogic — AI Hallucination Detection',
     description:
