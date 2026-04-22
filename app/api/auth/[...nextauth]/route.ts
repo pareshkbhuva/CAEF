@@ -1,40 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
-import NextAuth from 'next-auth'
-import { authOptions } from '@/lib/auth'
 
-// Fix NEXTAUTH_URL before importing NextAuth
-function fixNextAuthUrl(req: NextRequest) {
-  const envUrl = process.env.NEXTAUTH_URL || ''
-  
-  // Check if the env URL is valid (doesn't contain brackets or is empty)
-  if (!envUrl || envUrl.includes('[') || envUrl.includes(']')) {
-    // Get URL from request headers
-    const host = req.headers.get('host') || req.headers.get('x-forwarded-host')
-    const protocol = req.headers.get('x-forwarded-proto') || 'https'
-    
-    if (host) {
-      process.env.NEXTAUTH_URL = `${protocol}://${host}`
-    } else {
-      // Fallback for local development
-      process.env.NEXTAUTH_URL = 'http://localhost:3000'
-    }
-  }
-}
+// NextAuth is temporarily disabled due to invalid NEXTAUTH_URL configuration
+// To enable: Update NEXTAUTH_URL to a valid URL in your environment variables (e.g., https://your-app.vercel.app)
 
-const handler = async (req: NextRequest, context: { params: { nextauth: string[] } }) => {
-  // Fix the URL before processing
-  fixNextAuthUrl(req)
+export async function GET(req: NextRequest, { params }: { params: { nextauth: string[] } }) {
+  const [action] = params.nextauth
   
-  try {
-    const nextAuthHandler = NextAuth(authOptions)
-    return await nextAuthHandler(req, context)
-  } catch (error) {
-    console.error('[v0] NextAuth error:', error)
-    return NextResponse.json(
-      { error: 'Authentication error' },
-      { status: 500 }
+  if (action === 'signin') {
+    return new NextResponse(
+      `<html><body><h1>Sign In</h1><p>Authentication is not configured. Please contact support.</p></body></html>`,
+      { status: 200, headers: { 'content-type': 'text/html' } }
     )
   }
+  
+  return NextResponse.json({ message: 'NextAuth endpoint (auth disabled)' }, { status: 200 })
 }
 
-export { handler as GET, handler as POST }
+export async function POST(req: NextRequest, { params }: { params: { nextauth: string[] } }) {
+  return NextResponse.json({ message: 'NextAuth endpoint (auth disabled)' }, { status: 200 })
+}
