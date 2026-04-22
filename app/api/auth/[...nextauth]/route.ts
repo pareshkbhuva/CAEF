@@ -28,7 +28,7 @@ const handler = NextAuth({
     
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string
+        session.user.id = (typeof token.id === 'number' ? token.id : parseInt(token.id as string, 10) || 0)
       }
       return session
     },
@@ -40,7 +40,6 @@ const handler = NextAuth({
   },
   
   secret: process.env.NEXTAUTH_SECRET,
-  trustHost: true,
 })
 
 export { handler as GET, handler as POST }
