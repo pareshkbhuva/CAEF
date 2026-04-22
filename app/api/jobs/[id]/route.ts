@@ -47,6 +47,13 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const jobId = params.id
     const job = await getJobData(jobId)
 
+    // Add cache-busting headers
+    const headers = new Headers({
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+    })
+
     // If we have a database job record
     if (job) {
       // Already completed or failed — return stored result
@@ -54,13 +61,13 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         return NextResponse.json({
           status: 'completed',
           result: job.result,
-        })
+        }, { headers })
       }
       if (job.status === 'failed') {
         return NextResponse.json({
           status: 'failed',
           error: job.error_msg || 'Analysis failed',
-        })
+        }, { headers })
       }
 
       // Check RunPod for current status
@@ -69,16 +76,16 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         return NextResponse.json({
           status: 'failed',
           error: 'Job missing RunPod ID',
-        })
+        }, { headers })
       }
 
       const check = await checkRunPodJob(runpodId)
-      return handleRunPodResult(check, jobId, job.user_id, job.endpoint, job.input_text)
+      return handleRunPodResult(check, jobId, job.user_id, job.endpoint, job.input_text, headers)
     }
 
     // No database job record - treat ID as RunPod job ID directly
     const check = await checkRunPodJob(jobId)
-    return handleRunPodResult(check, jobId, null, 'public/demo', '')
+    return handleRunPodResult(check, jobId, null, 'public/demo', '', headers)
   } catch (err: any) {
     console.error('jobs/[id] error:', err)
     return NextResponse.json({ error: 'Status check failed' }, { status: 500 })
@@ -90,7 +97,8 @@ async function handleRunPodResult(
   jobId: string,
   userId: number | null,
   endpoint: string,
-  inputText: string
+  inputText: string,
+  headers: Headers
 ) {
   if (check.status === 'COMPLETED' && check.output) {
     const out = check.output
@@ -121,7 +129,7 @@ async function handleRunPodResult(
     return NextResponse.json({
       status: 'completed',
       result: resultData,
-    })
+    }, { headers })
   }
 
   if (check.status === 'FAILED' || check.status === 'TIMED_OUT' || check.status === 'CANCELLED') {
@@ -141,12 +149,12 @@ async function handleRunPodResult(
     return NextResponse.json({
       status: 'failed',
       error: errMsg,
-    })
+    }, { headers })
   }
 
   // Still running
   return NextResponse.json({
     status: 'running',
     runpod_status: check.status,
-  })
+  }, { headers })
 }
