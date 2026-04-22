@@ -3,27 +3,9 @@ import NextAuth from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
 import { upsertUser, getUserByEmail, genApiKey } from '@/lib/db'
 
-// Check if NEXTAUTH_URL is valid, fix it if needed
-function getValidNextAuthUrl(req: NextRequest): string {
-  const configuredUrl = process.env.NEXTAUTH_URL || ''
-  
-  // If URL is valid (no brackets), use it
-  try {
-    if (configuredUrl && !configuredUrl.includes('[')) {
-      new URL(configuredUrl)
-      return configuredUrl
-    }
-  } catch {}
-  
-  // Derive URL from request headers
-  const host = req.headers.get('host') || 'localhost:3000'
-  const proto = req.headers.get('x-forwarded-proto') || 'https'
-  return `${proto}://${host}`
-}
-
-// Create NextAuth options
-function getAuthOptions(baseUrl: string) {
-  return {
+// Create NextAuth handler with dynamic NEXTAUTH_URL
+function createAuthHandler(baseUrl: string) {
+  return NextAuth({
     providers: [
       GoogleProvider({
         clientId: process.env.GOOGLE_CLIENT_ID || '',
@@ -38,12 +20,12 @@ function getAuthOptions(baseUrl: string) {
       }),
     ],
     session: {
-      strategy: 'jwt' as const,
+      strategy: 'jwt',
       maxAge: 30 * 24 * 60 * 60,
     },
     callbacks: {
       async signIn({ user, account }: any) {
-        if (!user.email || account?.provider !== 'google') return false
+        if (!user?.email || account?.provider !== 'google') return false
         try {
           await upsertUser({
             email: user.email,
@@ -53,8 +35,8 @@ function getAuthOptions(baseUrl: string) {
           })
           return true
         } catch (err) {
-          console.error('signIn upsertUser failed:', err)
-          return true // Allow sign-in even if DB fails
+          console.error('[v0] signIn upsertUser failed:', err)
+          return true
         }
       },
       async jwt({ token, user }: any) {
@@ -79,7 +61,7 @@ function getAuthOptions(baseUrl: string) {
         return token
       },
       async session({ session, token }: any) {
-        if (session.user) {
+        if (session?.user) {
           session.user.id = token.userId as number
           session.user.apiKey = token.apiKey as string
           session.user.plan = token.plan as string
@@ -91,25 +73,35 @@ function getAuthOptions(baseUrl: string) {
       signIn: '/',
       error: '/',
     },
+    secret: process.env.NEXTAUTH_SECRET,
+    trustHost: true,
+  })
+}
+
+// Middleware to fix NEXTAUTH_URL before processing
+function middleware(req: NextRequest) {
+  const configuredUrl = process.env.NEXTAUTH_URL || ''
+  
+  // Only fix if the configured URL contains brackets (invalid)
+  if (configuredUrl.includes('[')) {
+    const host = req.headers.get('host') || 'localhost:3000'
+    const proto = req.headers.get('x-forwarded-proto') || 'http'
+    const baseUrl = `${proto}://${host}`
+    process.env.NEXTAUTH_URL = baseUrl
+    console.log('[v0] Fixed NEXTAUTH_URL to:', baseUrl)
   }
 }
 
-export async function GET(req: NextRequest) {
-  const baseUrl = getValidNextAuthUrl(req)
-  process.env.NEXTAUTH_URL = baseUrl
-  
-  const authOptions = getAuthOptions(baseUrl)
-  const handler = NextAuth(authOptions)
-  
-  return handler(req as any, { params: { nextauth: req.nextUrl.pathname.split('/api/auth/')[1]?.split('/') || [] } })
+export async function GET(req: NextRequest, context: any) {
+  middleware(req)
+  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
+  const handler = createAuthHandler(baseUrl)
+  return handler(req, context)
 }
 
-export async function POST(req: NextRequest) {
-  const baseUrl = getValidNextAuthUrl(req)
-  process.env.NEXTAUTH_URL = baseUrl
-  
-  const authOptions = getAuthOptions(baseUrl)
-  const handler = NextAuth(authOptions)
-  
-  return handler(req as any, { params: { nextauth: req.nextUrl.pathname.split('/api/auth/')[1]?.split('/') || [] } })
+export async function POST(req: NextRequest, context: any) {
+  middleware(req)
+  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
+  const handler = createAuthHandler(baseUrl)
+  return handler(req, context)
 }
