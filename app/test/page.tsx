@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 
 type Mode = 'score' | 'ask'
@@ -48,7 +47,6 @@ function categoryToVerdict(cat: string | undefined): Verdict {
 }
 
 export default function TestPage() {
-  const { data: session } = useSession()
   const [mode, setMode] = useState<Mode>('score')
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -352,15 +350,7 @@ export default function TestPage() {
       <div className="test-foot">
         Powered by CAEF architecture — analyzes the model&apos;s internal hidden states in a single forward pass.
         <br />
-        {session ? (
-          <>
-            Visit <Link href="/dashboard">your dashboard</Link> for API access.
-          </>
-        ) : (
-          <>
-            <Link href="/api/auth/signin">Sign up free</Link> for 15 queries/day and full API access.
-          </>
-        )}
+        <Link href="/api/auth/signin">Sign up free</Link> for 15 queries/day and full API access.
       </div>
 
       <div style={{ height: 80 }} />
