@@ -117,7 +117,7 @@ export default function Footer() {
             </div>
           </div>
           <div className="footer-bottom">
-            <div>© 2026 Agnos Research · US Provisional Patent Filed</div>
+            <div>© 2026 Agnos Logic · US Provisional Patent Filed</div>
             <div><a href="mailto:hello@agnoslogic.com">hello@agnoslogic.com</a></div>
           </div>
         </div>

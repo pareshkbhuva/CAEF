@@ -40,6 +40,7 @@ export async function submitRunPodJob(payload: RunPodPayload): Promise<{ id: str
       },
       body: JSON.stringify({ input: payload }),
       signal: AbortSignal.timeout(8000), // stay under 10s Vercel limit
+      cache: 'no-store',
     })
     if (!res.ok) {
       return { error: `RunPod HTTP ${res.status}` }
@@ -68,6 +69,8 @@ export async function checkRunPodJob(
     const res = await fetch(`${RUNPOD_BASE}/status/${runpodJobId}`, {
       headers: { Authorization: `Bearer ${RUNPOD_API_KEY}` },
       signal: AbortSignal.timeout(8000),
+      cache: 'no-store', // Disable caching - we need fresh status every time
+      next: { revalidate: 0 }, // Also disable Next.js caching
     })
     if (!res.ok) {
       return { status: 'FAILED', error: `HTTP ${res.status}` }
@@ -106,6 +109,7 @@ export async function tryRunPodSync(
       },
       body: JSON.stringify({ input: payload }),
       signal: AbortSignal.timeout(timeoutMs),
+      cache: 'no-store',
     })
     if (!res.ok) {
       return { error: `HTTP ${res.status}` }

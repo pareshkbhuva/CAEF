@@ -1,6 +1,6 @@
 import { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
-import { upsertUser, getUserByEmail } from './db'
+import { upsertUser, getUserByEmail, genApiKey } from './db'
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -33,16 +33,29 @@ export const authOptions: NextAuthOptions = {
         return true
       } catch (err) {
         console.error('signIn upsertUser failed:', err)
-        return false
+        // Still allow sign-in even if database fails
+        return true
       }
     },
     async jwt({ token, user }) {
       if (user?.email) {
-        const dbUser = await getUserByEmail(user.email)
-        if (dbUser) {
-          token.userId = dbUser.id
-          token.apiKey = dbUser.api_key
-          token.plan = dbUser.plan
+        try {
+          const dbUser = await getUserByEmail(user.email)
+          if (dbUser) {
+            token.userId = dbUser.id
+            token.apiKey = dbUser.api_key
+            token.plan = dbUser.plan
+          } else {
+            // Fallback when no database
+            token.userId = 0
+            token.apiKey = genApiKey(user.email)
+            token.plan = 'free'
+          }
+        } catch {
+          // Fallback when database fails
+          token.userId = 0
+          token.apiKey = genApiKey(user.email)
+          token.plan = 'free'
         }
       }
       return token

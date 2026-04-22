@@ -1,6 +1,11 @@
 import { sql } from '@vercel/postgres'
 import crypto from 'crypto'
 
+// Check if database is configured
+function isDatabaseConfigured(): boolean {
+  return !!(process.env.POSTGRES_URL || process.env.DATABASE_URL)
+}
+
 /**
  * Database schema initialization.
  * Called on first load or via scripts/init-db.ts
@@ -100,7 +105,20 @@ export async function upsertUser(params: {
   name: string
   picture: string
   googleId: string
-}): Promise<User> {
+}): Promise<User | null> {
+  if (!isDatabaseConfigured()) {
+    // Return mock user when database is not available
+    return {
+      id: 0,
+      email: params.email,
+      name: params.name,
+      picture: params.picture,
+      google_id: params.googleId,
+      api_key: genApiKey(params.email),
+      plan: 'free',
+      created_at: new Date().toISOString()
+    }
+  }
   const { email, name, picture, googleId } = params
   const existing = await sql<User>`SELECT * FROM users WHERE email = ${email}`
   if (existing.rows.length > 0) {
@@ -121,6 +139,9 @@ export async function upsertUser(params: {
 }
 
 export async function getUserByEmail(email: string): Promise<User | null> {
+  if (!isDatabaseConfigured()) {
+    return null
+  }
   const result = await sql<User>`SELECT * FROM users WHERE email = ${email}`
   return result.rows[0] || null
 }
