@@ -1,55 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { useSession, signIn, signOut } from 'next-auth/react'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 
 export default function Nav() {
-  const [isAuthEnabled, setIsAuthEnabled] = useState(false)
-  const [session, setSession] = useState<any>(null)
-  const [status, setStatus] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading')
-
-  // Only use useSession if auth is properly configured
-  useEffect(() => {
-    async function checkAuth() {
-      try {
-        const res = await fetch('/api/auth/session')
-        if (res.ok) {
-          const data = await res.json()
-          if (data && data.user) {
-            setSession(data)
-            setStatus('authenticated')
-          } else {
-            setStatus('unauthenticated')
-          }
-          setIsAuthEnabled(true)
-        } else {
-          setStatus('unauthenticated')
-          setIsAuthEnabled(false)
-        }
-      } catch {
-        setStatus('unauthenticated')
-        setIsAuthEnabled(false)
-      }
-    }
-    checkAuth()
-  }, [])
-
-  const handleSignIn = () => {
-    if (isAuthEnabled) {
-      signIn('google')
-    } else {
-      alert('Authentication is not configured. Please set up NEXTAUTH_URL and other required environment variables.')
-    }
-  }
-
-  const handleSignInDashboard = () => {
-    if (isAuthEnabled) {
-      signIn('google', { callbackUrl: '/dashboard' })
-    } else {
-      alert('Authentication is not configured. Please set up NEXTAUTH_URL and other required environment variables.')
-    }
-  }
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
     <nav className="site-nav">
@@ -88,6 +43,7 @@ export default function Nav() {
           gap: 36px;
           list-style: none;
           align-items: center;
+          margin: 0;
         }
         .nav-links a {
           color: var(--ink-2);
@@ -103,28 +59,43 @@ export default function Nav() {
           align-items: center;
           gap: 16px;
         }
-        .nav-avatar {
-          width: 28px;
-          height: 28px;
-          border-radius: 50%;
-        }
-        .sign-link {
-          color: var(--ink-2);
+        .nav-button {
+          padding: 8px 16px;
+          border: 1px solid var(--rule);
+          background: white;
+          color: var(--ink);
+          border-radius: 6px;
+          cursor: pointer;
           font-size: 14px;
-          text-decoration: none;
+          font-weight: 500;
+          transition: all 0.2s;
+        }
+        .nav-button:hover {
+          background: var(--bg);
+        }
+        .nav-button.primary {
+          background: var(--ink);
+          color: white;
+          border-color: var(--ink);
+        }
+        .nav-button.primary:hover {
+          background: var(--ink-2);
+          border-color: var(--ink-2);
+        }
+        .nav-toggle {
+          display: none;
           background: none;
           border: none;
           cursor: pointer;
-          font-family: var(--sans);
-          padding: 0;
-        }
-        .sign-link:hover {
+          font-size: 24px;
           color: var(--ink);
-          text-decoration: underline;
         }
         @media (max-width: 768px) {
           .nav-links {
             display: none;
+          }
+          .nav-toggle {
+            display: block;
           }
         }
       `}</style>
@@ -137,47 +108,23 @@ export default function Nav() {
             <Link href="/test">Live demo</Link>
           </li>
           <li>
-            <Link href="/benchmarks">Benchmarks</Link>
+            <Link href="/terms">Terms</Link>
           </li>
           <li>
-            <Link href="/docs">Documentation</Link>
-          </li>
-          <li>
-            <Link href="/compare">Compare</Link>
-          </li>
-          <li>
-            <Link href="/use-cases">Use cases</Link>
+            <Link href="/privacy">Privacy</Link>
           </li>
         </ul>
         <div className="nav-right">
-          {status === 'loading' ? null : session ? (
-            <>
-              <Link href="/dashboard" className="btn btn-ghost">
-                Dashboard
-              </Link>
-              {session.user?.image && (
-                <img
-                  src={session.user.image}
-                  className="nav-avatar"
-                  referrerPolicy="no-referrer"
-                  alt=""
-                />
-              )}
-              <button onClick={() => signOut({ callbackUrl: '/' })} className="sign-link">
-                Sign out
-              </button>
-            </>
-          ) : (
-            <>
-              <button onClick={handleSignIn} className="sign-link">
-                Sign in
-              </button>
-              <button onClick={handleSignInDashboard} className="btn btn-primary">
-                Get API key
-              </button>
-            </>
-          )}
+          <button className="nav-button">Sign in</button>
+          <button className="nav-button primary">Get API key</button>
         </div>
+        <button 
+          className="nav-toggle"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          aria-label="Toggle menu"
+        >
+          ☰
+        </button>
       </div>
     </nav>
   )
