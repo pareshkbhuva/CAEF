@@ -101,7 +101,7 @@ export default function TestPage() {
 
       // Case 2: async job — poll until complete
       if (data.jobId) {
-        setStatus('Warming up inference backend… this takes up to 60 seconds on first request.')
+        setStatus('Warming up inference backend… first request can take 3-4 minutes for cold start.')
         pollJob(data.jobId)
         return
       }
@@ -116,7 +116,7 @@ export default function TestPage() {
 
   function pollJob(jobId: string) {
     const startTime = Date.now()
-    const maxWait = 120_000 // 2 minutes
+    const maxWait = 300_000 // 5 minutes - first request can take 3-4 mins for cold start
 
     const poll = async () => {
       if (Date.now() - startTime > maxWait) {
