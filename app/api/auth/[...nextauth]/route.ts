@@ -44,3 +44,8 @@ const handler = NextAuth({
 })
 
 export { handler as GET, handler as POST }
+
+// Handle HEAD requests
+export async function HEAD(req: any) {
+  return new Response(null, { status: 200 })
+}
