@@ -2,6 +2,7 @@ import './globals.css'
 import type { Metadata } from 'next'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import { SessionProvider } from '@/components/SessionProvider'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.agnoslogic.com'),
@@ -51,9 +52,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        <Nav />
-        <main>{children}</main>
-        <Footer />
+        <SessionProvider>
+          <Nav />
+          <main>{children}</main>
+          <Footer />
+        </SessionProvider>
       </body>
     </html>
   )

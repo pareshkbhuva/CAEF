@@ -9,10 +9,7 @@ const handler = NextAuth({
     }),
   ],
   
-  pages: {
-    signIn: '/',
-    error: '/',
-  },
+  // Use default NextAuth pages - removing custom pages that redirect to home
   
   callbacks: {
     async jwt({ token, user, account }) {
